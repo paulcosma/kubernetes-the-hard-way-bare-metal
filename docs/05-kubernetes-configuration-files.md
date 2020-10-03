@@ -11,11 +11,10 @@ In this section you will generate kubeconfig files for the `controller manager`,
 Each kubeconfig requires a Kubernetes API Server to connect to. To support high availability the IP address assigned to the external load balancer fronting the Kubernetes API Servers will be used.
 
 Retrieve the `kubernetes-the-hard-way` static IP address:
+In our case it is `10.2.35.0`
 
 ```
-KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-  --region $(gcloud config get-value compute/region) \
-  --format 'value(address)')
+LOADBALANCER_ADDRESS=10.2.35.0
 ```
 
 ### The kubelet Kubernetes Configuration File
@@ -27,11 +26,11 @@ When generating kubeconfig files for Kubelets the client certificate matching th
 Generate a kubeconfig file for each worker node:
 
 ```
-for instance in worker-0 worker-1 worker-2; do
+for instance in kube04 kube05 kube06; do
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.pem \
     --embed-certs=true \
-    --server=https://${KUBERNETES_PUBLIC_ADDRESS}:6443 \
+    --server=https://${LOADBALANCER_ADDRESS}:6443 \
     --kubeconfig=${instance}.kubeconfig
 
   kubectl config set-credentials system:node:${instance} \
@@ -52,9 +51,9 @@ done
 Results:
 
 ```
-worker-0.kubeconfig
-worker-1.kubeconfig
-worker-2.kubeconfig
+kube04.kubeconfig
+kube05.kubeconfig
+kube06.kubeconfig
 ```
 
 ### The kube-proxy Kubernetes Configuration File
@@ -198,16 +197,19 @@ admin.kubeconfig
 Copy the appropriate `kubelet` and `kube-proxy` kubeconfig files to each worker instance:
 
 ```
-for instance in worker-0 worker-1 worker-2; do
-  gcloud compute scp ${instance}.kubeconfig kube-proxy.kubeconfig ${instance}:~/
-done
+{
+  scp kube04.kubeconfig kube-proxy.kubeconfig root@10.2.35.4:/root/
+  scp kube05.kubeconfig kube-proxy.kubeconfig root@10.2.35.5:/root/
+  scp kube06.kubeconfig kube-proxy.kubeconfig root@10.2.35.6:/root/	
+}
+
 ```
 
 Copy the appropriate `kube-controller-manager` and `kube-scheduler` kubeconfig files to each controller instance:
 
 ```
-for instance in controller-0 controller-1 controller-2; do
-  gcloud compute scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig ${instance}:~/
+for instance in root@10.2.35.1 root@10.2.35.2 root@10.2.35.3; do
+  scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig ${instance}:/root/
 done
 ```
 

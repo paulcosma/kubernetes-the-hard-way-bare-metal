@@ -1,5 +1,6 @@
-# Bootstrapping the Kubernetes Worker Nodes
+# TLS Bootstrapping the Kubernetes Worker Nodes
 
+!!! ToDo !!! 
 In this lab you will bootstrap three Kubernetes worker nodes. The following components will be installed on each node: [runc](https://github.com/opencontainers/runc), [container networking plugins](https://github.com/containernetworking/cni), [kubelet](https://kubernetes.io/docs/admin/kubelet), and [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies).
 
 ## Prerequisites
@@ -108,7 +109,7 @@ echo $POD_CIDR
 ```
 
 Create the `bridge` network configuration file:
-> ! Skip this is you plan to use another network solution. (Calicom, Weave)
+> ! Skip this for now. We are going to use Calico instead
 
 ```
 cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
@@ -131,7 +132,7 @@ EOF
 ```
 
 Create the `loopback` network configuration file:
-> ! Skip this if you plan to use another network solution. (Calico, Weave)
+> ! Skip this for now. We are going to use Calico instead
 ```
 cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
 {
@@ -272,8 +273,6 @@ EOF
 List the registered Kubernetes nodes:
 Execute command on a master node.
 ```
-kubectl version --short --kubeconfig admin.kubeconfig
-kubectl cluster-info --kubeconfig admin.kubeconfig
 kubectl get nodes --kubeconfig admin.kubeconfig
 ```
 
@@ -281,13 +280,10 @@ kubectl get nodes --kubeconfig admin.kubeconfig
 
 ```
 NAME       STATUS   ROLES    AGE   VERSION
-kube04     Ready    <none>   24s   v1.18.6
-kube05     Ready    <none>   24s   v1.18.6
-kube06     Ready    <none>   24s   v1.18.6
+kube04     NotReady    <none>   24s   v1.18.6
+kube05     NotReady    <none>   24s   v1.18.6
+kube06     NotReady    <none>   24s   v1.18.6
 ```
 > Note: It is OK for the worker node to be in a NotReady state. That is because we haven't configured Networking yet.
 
-- If you want to provision more dynamically another worker node (kube07) using TLS bootstraping follow<br> 
-Next: [TLS Bootstrapping the Kubernetes Worker Nodes](09-bootstrapping-kubernetes-workers-tls.md) <br>
-- Else<br>
 Next: [Configuring kubectl for Remote Access](10-configuring-kubectl.md)

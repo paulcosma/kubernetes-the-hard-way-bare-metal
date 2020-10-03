@@ -7,7 +7,7 @@ In this lab you will deploy the [DNS add-on](https://kubernetes.io/docs/concepts
 Deploy the `coredns` cluster add-on:
 
 ```
-kubectl apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns-1.7.0.yaml
+kubectl apply -f ./coredns-1.7.0.yaml
 ```
 
 > output
@@ -71,11 +71,11 @@ kubectl exec -ti $POD_NAME -- nslookup kubernetes
 > output
 
 ```
-Server:    10.32.0.10
-Address 1: 10.32.0.10 kube-dns.kube-system.svc.cluster.local
+Server:    10.234.0.10
+Address 1: 10.234.0.10 kube-dns.kube-system.svc.cluster.local
 
 Name:      kubernetes
-Address 1: 10.32.0.1 kubernetes.default.svc.cluster.local
+Address 1: 10.234.0.1 kubernetes.default.svc.cluster.local
 ```
 
 Next: [Smoke Test](13-smoke-test.md)

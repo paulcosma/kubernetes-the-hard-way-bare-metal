@@ -33,6 +33,10 @@ brew install cfssl
 ### Linux
 
 ```
+apt-get install -y wget
+```
+
+```
 wget -q --show-progress --https-only --timestamping \
   https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/1.4.1/linux/cfssl \
   https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/1.4.1/linux/cfssljson
@@ -43,7 +47,7 @@ chmod +x cfssl cfssljson
 ```
 
 ```
-sudo mv cfssl cfssljson /usr/local/bin/
+mv cfssl cfssljson /usr/local/bin/
 ```
 
 ### Verification
@@ -84,7 +88,7 @@ chmod +x kubectl
 ```
 
 ```
-sudo mv kubectl /usr/local/bin/
+mv kubectl /usr/local/bin/
 ```
 
 ### Linux
@@ -98,7 +102,7 @@ chmod +x kubectl
 ```
 
 ```
-sudo mv kubectl /usr/local/bin/
+mv kubectl /usr/local/bin/
 ```
 
 ### Verification

@@ -12,14 +12,12 @@ Generate a kubeconfig file suitable for authenticating as the `admin` user:
 
 ```
 {
-  KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-    --region $(gcloud config get-value compute/region) \
-    --format 'value(address)')
+  KUBERNETES_LB_ADDRESS=10.2.35.0
 
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.pem \
     --embed-certs=true \
-    --server=https://${KUBERNETES_PUBLIC_ADDRESS}:6443
+    --server=https://${KUBERNETES_LB_ADDRESS}:6443
 
   kubectl config set-credentials admin \
     --client-certificate=admin.pem \
@@ -62,9 +60,9 @@ kubectl get nodes
 
 ```
 NAME       STATUS   ROLES    AGE     VERSION
-worker-0   Ready    <none>   2m30s   v1.18.6
-worker-1   Ready    <none>   2m30s   v1.18.6
-worker-2   Ready    <none>   2m30s   v1.18.6
+kube04     NotReady    <none>   2m30s   v1.18.6
+kube05     NotReady    <none>   2m30s   v1.18.6
+kube06     NotReady    <none>   2m30s   v1.18.6
 ```
 
 Next: [Provisioning Pod Network Routes](11-pod-network-routes.md)

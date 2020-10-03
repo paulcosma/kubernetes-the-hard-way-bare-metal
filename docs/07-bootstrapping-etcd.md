@@ -4,11 +4,7 @@ Kubernetes components are stateless and store cluster state in [etcd](https://gi
 
 ## Prerequisites
 
-The commands in this lab must be run on each controller instance: `controller-0`, `controller-1`, and `controller-2`. Login to each controller instance using the `gcloud` command. Example:
-
-```
-gcloud compute ssh controller-0
-```
+The commands in this lab must be run on each controller instance: `kube01`, `kube02`, and `kube03`. Login to each controller instance using the `ssh` command.
 
 ### Running commands in parallel with tmux
 
@@ -21,6 +17,9 @@ gcloud compute ssh controller-0
 Download the official etcd release binaries from the [etcd](https://github.com/etcd-io/etcd) GitHub project:
 
 ```
+apt-get install -y wget
+```
+```
 wget -q --show-progress --https-only --timestamping \
   "https://github.com/etcd-io/etcd/releases/download/v3.4.10/etcd-v3.4.10-linux-amd64.tar.gz"
 ```
@@ -30,7 +29,7 @@ Extract and install the `etcd` server and the `etcdctl` command line utility:
 ```
 {
   tar -xvf etcd-v3.4.10-linux-amd64.tar.gz
-  sudo mv etcd-v3.4.10-linux-amd64/etcd* /usr/local/bin/
+  mv etcd-v3.4.10-linux-amd64/etcd* /usr/local/bin/
 }
 ```
 
@@ -38,23 +37,30 @@ Extract and install the `etcd` server and the `etcdctl` command line utility:
 
 ```
 {
-  sudo mkdir -p /etc/etcd /var/lib/etcd
-  sudo chmod 700 /var/lib/etcd
-  sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+  mkdir -p /etc/etcd /var/lib/etcd
+  chmod 700 /var/lib/etcd
+  cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 }
 ```
 
 The instance internal IP address will be used to serve client requests and communicate with etcd cluster peers. Retrieve the internal IP address for the current compute instance:
 
 ```
-INTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" \
-  http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+INTERNAL_IP=$(ifconfig ens18 | grep "inet " | awk -F'[: ]+' '{ print $3 }')
+```
+Verify INTERNAL_IP
+```
+echo $INTERNAL_IP
 ```
 
 Each etcd member must have a unique name within an etcd cluster. Set the etcd name to match the hostname of the current compute instance:
 
 ```
 ETCD_NAME=$(hostname -s)
+```
+Verify
+```
+echo $ETCD_NAME
 ```
 
 Create the `etcd.service` systemd unit file:
@@ -82,7 +88,7 @@ ExecStart=/usr/local/bin/etcd \\
   --listen-client-urls https://${INTERNAL_IP}:2379,https://127.0.0.1:2379 \\
   --advertise-client-urls https://${INTERNAL_IP}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster controller-0=https://10.240.0.10:2380,controller-1=https://10.240.0.11:2380,controller-2=https://10.240.0.12:2380 \\
+  --initial-cluster kube01=https://10.2.35.1:2380,kube02=https://10.2.35.2:2380,kube03=https://10.2.35.3:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
@@ -97,20 +103,20 @@ EOF
 
 ```
 {
-  sudo systemctl daemon-reload
-  sudo systemctl enable etcd
-  sudo systemctl start etcd
+  systemctl daemon-reload
+  systemctl enable etcd
+  systemctl start etcd
 }
 ```
 
-> Remember to run the above commands on each controller node: `controller-0`, `controller-1`, and `controller-2`.
+> Remember to run the above commands on each controller node: `kube01`, `kube02`, and `kube03`.
 
 ## Verification
 
 List the etcd cluster members:
 
 ```
-sudo ETCDCTL_API=3 etcdctl member list \
+ETCDCTL_API=3 etcdctl member list \
   --endpoints=https://127.0.0.1:2379 \
   --cacert=/etc/etcd/ca.pem \
   --cert=/etc/etcd/kubernetes.pem \
@@ -120,9 +126,9 @@ sudo ETCDCTL_API=3 etcdctl member list \
 > output
 
 ```
-3a57933972cb5131, started, controller-2, https://10.240.0.12:2380, https://10.240.0.12:2379, false
-f98dc20bce6225a0, started, controller-0, https://10.240.0.10:2380, https://10.240.0.10:2379, false
-ffed16798470cab5, started, controller-1, https://10.240.0.11:2380, https://10.240.0.11:2379, false
+3a57933972cb5131, started, kube01, https://10.2.35.2:2380, https://10.2.35.3:2379, false
+f98dc20bce6225a0, started, kube02, https://10.2.35.1:2380, https://10.2.35.3:2379, false
+ffed16798470cab5, started, kube03, https://10.2.35.1:2380, https://10.2.35.2:2379, false
 ```
 
 Next: [Bootstrapping the Kubernetes Control Plane](08-bootstrapping-kubernetes-controllers.md)
